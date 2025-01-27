@@ -93,43 +93,45 @@ row.names(target_grouped) = target_grouped$grouping
 # filter targets
 
 # 1. filter by zero abundance
-target_filter1 = lapply(target[,-ncol(target)], 
-       function(x){
-         temp = lapply(unique(target$grouping),
-                function(specie){
-                  target_temp = x[which(target$grouping==specie)]
-                  if(quantile(target_temp, 0.85) == 0){
-                    return(0)
-                  }
-                  else{
-                    return(1)
-                  }
-                })
-         if(all(unlist(temp) == 0)){
-           return(0)
-         }
-         else{
-           return(1)
-         }
-       })
+# target_filter1 = lapply(target[,-ncol(target)], 
+#        function(x){
+#          temp = lapply(unique(target$grouping),
+#                 function(specie){
+#                   target_temp = x[which(target$grouping==specie)]
+#                   if(quantile(target_temp, 1) == 0){
+#                     return(0)
+#                   }
+#                   else{
+#                     return(1)
+#                   }
+#                 })
+#          if(all(unlist(temp) == 0)){
+#            return(0)
+#          }
+#          else{
+#            return(1)
+#          }
+#        })
+# 
+# target_filtered = target[,which(unlist(target_filter1) == TRUE)]
+# 1. Filter step nicht notwendig -- variation auf 0.9 erhöht, später dann für 
+# verschiedene Werte filtern und averagen.
+target_filtered = target[, -ncol(target)]
 
-target_filtered = target[,which(unlist(target_filter1) == TRUE)]
-
-
-# 2. filter according to coefficient of variation
+# 2. filter according to coefficient of variation 
 target_filter2 = lapply(target_filtered, 
                         function(x){
                           temp = lapply(unique(target$grouping),
                                         function(specie){
-                                          
+                                          #browser()
                                           target_temp = x[which(target$grouping==specie)]
-                                          if(mean(target_temp) == 0){
+                                          if(mean(target_temp, na.rm = TRUE) == 0){
                                             return(0)
                                           }
                                           else if(is.na(sd(target_temp, na.rm = TRUE))){
                                             return(0)
                                           }
-                                          else if((sd(target_temp, na.rm = TRUE) / mean(target_temp, na.rm = TRUE)) < 0.5){
+                                          else if((sd(target_temp, na.rm = TRUE) / mean(target_temp, na.rm = TRUE)) < 0.9){
                                             return(1)
                                           }
                                           else{

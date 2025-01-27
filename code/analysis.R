@@ -1,4 +1,4 @@
-load("bmr_1701.Rdata")
+load("results/bmr_1701.Rdata")
 library(ape)
 library(ggplot2)
 

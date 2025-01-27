@@ -92,7 +92,7 @@ custom_knn <- R6::R6Class(
         feature_types = c("numeric", "integer"),
         predict_types = c("response"),
         param_set = ps(
-          k = p_int(lower = 1, upper = 12)
+          k = p_int(lower = 1, upper = 12, default = 5)
         )
       )
     }

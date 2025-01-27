@@ -51,6 +51,21 @@ gp_tuner <- AutoTuner$new(
   store_tuning_instance = TRUE
 )
 
+
+# define additional custom knn learners without tuning 
+# to compare agains average distance
+lrn_knn2 = custom_knn$new()
+lrn_knn2$param_set$values$k = 2
+lrn_knn5 = custom_knn$new()
+lrn_knn5$param_set$values$k = 5
+lrn_knn8 = custom_knn$new()
+lrn_knn8$param_set$values$k = 8
+lrn_knn11 = custom_knn$new()
+lrn_knn11$param_set$values$k = 11
+
+
+
+
 library(future.apply)
 options(future.globals.maxSize = 1e9)
 #plan("future::multisession") ## => parallelize on your local computer
@@ -64,7 +79,7 @@ bmr <- future_lapply(Y, function(y) {
   
   # Define benchmark design (which includes learners, task, resampling strategy, and performance measures)
   design <- benchmark_grid(
-    learners = list(knn_tuner, gp_tuner),
+    learners = list(knn_tuner, gp_tuner, lrn_knn2, lrn_knn5, lrn_knn8, lrn_knn11),
     tasks = list(task),
     resamplings = list(outer_resampling)
   )
