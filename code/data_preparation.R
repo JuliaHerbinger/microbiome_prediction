@@ -93,7 +93,7 @@ row.names(target_grouped) = target_grouped$grouping
 # filter targets
 
 # 1. filter by zero abundance
-# target_filter1 = lapply(target[,-ncol(target)], 
+# target_filter1 = lapply(target[,-ncol(target)],
 #        function(x){
 #          temp = lapply(unique(target$grouping),
 #                 function(specie){
@@ -112,8 +112,8 @@ row.names(target_grouped) = target_grouped$grouping
 #            return(1)
 #          }
 #        })
-# 
-# target_filtered = target[,which(unlist(target_filter1) == TRUE)]
+
+#target_filtered = target[,which(unlist(target_filter1) == TRUE)]
 # 1. Filter step nicht notwendig -- variation auf 0.9 erhöht, später dann für 
 # verschiedene Werte filtern und averagen.
 target_filtered = target[, -ncol(target)]
@@ -131,7 +131,7 @@ target_filter2 = lapply(target_filtered,
                                           else if(is.na(sd(target_temp, na.rm = TRUE))){
                                             return(0)
                                           }
-                                          else if((sd(target_temp, na.rm = TRUE) / mean(target_temp, na.rm = TRUE)) < 0.9){
+                                          else if((sd(target_temp, na.rm = TRUE) / mean(target_temp, na.rm = TRUE)) < 0.5){
                                             return(1)
                                           }
                                           else{

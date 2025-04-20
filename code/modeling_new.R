@@ -6,6 +6,7 @@ library(mlr3)
 library(mlr3tuning)
 library(paradox)
 library(data.table)
+library(kernlab)
 
 
 # Define tuning and search spaces
@@ -19,9 +20,19 @@ search_space_gp <- ps(
   
 )
 
+search_space_svm <- ps(
+  C = p_dbl(0.01, 10, logscale = TRUE),  
+  sigma = p_dbl(0.01, 10, logscale = TRUE) 
+)
 
 
-set.seed(123)
+
+
+
+
+
+
+#set.seed(123)
 
 # Inner resampling for tuning
 inner_resampling <- rsmp("cv", folds = 3)
@@ -52,6 +63,20 @@ gp_tuner <- AutoTuner$new(
 )
 
 
+# Define AutoTuner for SVM
+options(mlr3.encapsulate = "evaluate")  # ensures errors do not crash benchmarking
+
+svm_tuner <- AutoTuner$new(
+  learner = custom_svm$new(),
+  resampling = inner_resampling,
+  measure = msr("regr.rmse"),
+  search_space = search_space_svm,
+  terminator = trm("evals", n_evals = 40),
+  tuner = tnr("random_search"),
+  store_tuning_instance = TRUE
+)
+
+
 # define additional custom knn learners without tuning 
 # to compare agains average distance
 lrn_knn2 = custom_knn$new()
@@ -74,21 +99,26 @@ plan(multisession, workers = 10)
 
 bmr <- future_lapply(Y, function(y) {
   # Define task
+  #options(mlr3.encapsulate = "evaluate")
+  
   data = cbind(X, "y" = y)
   task <- as_task_regr(data, target = "y")
   
   # Define benchmark design (which includes learners, task, resampling strategy, and performance measures)
   design <- benchmark_grid(
-    learners = list(knn_tuner, gp_tuner, lrn_knn2, lrn_knn5, lrn_knn8, lrn_knn11),
+    learners = list(svm_tuner),
+    #learners = list(knn_tuner, gp_tuner, lrn_knn2, lrn_knn5, lrn_knn8, lrn_knn11),
     tasks = list(task),
     resamplings = list(outer_resampling)
   )
   
   # Benchmark both models using nested resampling and autotuning
+  #set.seed(123)
   benchmark_result <- benchmark(design)
+  print(benchmark_result)
   return(benchmark_result)
 }, future.seed=123)
 
 t2 = timestamp()
 
-save(bmr, file = paste0("results/bmr_", format(Sys.time(), "%d%m%Y"), ".RData"))
+save(bmr, file = paste0("results/bmr_svm_", format(Sys.time(), "%d%m%Y"), ".RData"))
