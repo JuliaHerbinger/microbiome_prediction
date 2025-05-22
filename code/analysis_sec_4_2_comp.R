@@ -1,7 +1,7 @@
 # Analysis of Section 4.2 -- Model comparison
 
 # load resutls after running benchmark.R
-load("results/bmr_21042025.Rdata")
+load("results/bmr_22052025.Rdata")
 
 
 # 1. extract results from benchmark for all learners
@@ -21,16 +21,17 @@ jsd_svm = compute_jsd_distance(data_response_svm, data_truth_svm)
 # 3. combine data and prepare for plotting
 data_jsd = data.frame("Specie" = row.names(X), "KNN" = jsd_knn, "GP" = jsd_gp, "SVM" = jsd_svm)
 data_plot_jsd = create_data_jsd_plot(data_jsd, "KNN")
-
+data_plot_jsd_fam = data_plot_jsd[data_plot_jsd$Specie %in% c(Poaceae, Brassica),]
+data_plot_jsd_rem = data_plot_jsd[!(data_plot_jsd$Specie %in% c(Poaceae, Brassica)),]
 
 #---------------------------------------------------------------------
-# Performance summary of Table 2
+# Performance summary of Table 3
 
 # all species
 print(paste("mean knn = ", mean(jsd_knn, na.rm = T)))
 sd(jsd_knn, na.rm = T)
-print(paste("mean gp = ", mean(jsd_gp_tuned, na.rm = T)))
-sd(jsd_gp_tuned, na.rm = T)
+print(paste("mean gp = ", mean(jsd_gp, na.rm = T)))
+sd(jsd_gp, na.rm = T)
 print(paste("mean svm = ", mean(jsd_svm, na.rm = T)))
 sd(jsd_svm, na.rm = T)
 
@@ -43,7 +44,6 @@ print(paste("mean svm = ", mean(data_plot_jsd_fam[data_plot_jsd_fam$Model == "SV
 sd(data_plot_jsd_fam[data_plot_jsd_fam$Model == "SVM", "jsd"], na.rm = T)
 
 # Remaining species
-data_plot_jsd_rem = data_plot_jsd[!(data_plot_jsd$Specie %in% c(Poaceae, Brassica)),]
 print(paste("mean knn = ", mean(data_plot_jsd_rem[data_plot_jsd_rem$Model == "KNN", "jsd"], na.rm = T)))
 sd(data_plot_jsd_rem[data_plot_jsd_rem$Model == "KNN", "jsd"], na.rm = T)
 print(paste("mean gp = ", mean(data_plot_jsd_rem[data_plot_jsd_rem$Model == "GP", "jsd"], na.rm = T)))
@@ -53,13 +53,19 @@ sd(data_plot_jsd_rem[data_plot_jsd_rem$Model == "SVM", "jsd"], na.rm = T)
 
 #---------------------------------------------------------------------
 # Figure 3: Performance Comparison
-data_plot_jsd_fam = data_plot_jsd[data_plot_jsd$Specie %in% c(Poaceae, Brassica),]
+
+# Combine species in the order of the families
+ordered_species <- c(Brassica, Poaceae)
+
+# Ensure Specie is a factor and reorder its levels
+data_plot_jsd_fam$Specie <- factor(data_plot_jsd_fam$Specie, levels = ordered_species)
 
 p1 = ggplot(data = data_plot_jsd_fam, aes(x = Specie, y = jsd)) + geom_line(aes(group = Model, col = Model)) + theme_bw() + ylim(0,0.7) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5)) + ggtitle("Poaceae and Brassica") + ylab("Performance (JSD)")
-
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5)) + ggtitle("Brassica and Poaceae") + ylab("Performance (JSD)") +
+  scale_color_manual(values = c("KNN" = "#1f77b4", "GP" = "#2ca02c", "SVM" = "#d62728"),labels = c("KNN" = "HD-KNN","GP"  =  "HD-GPR","SVM" = "HD-SVR"))
 p2 = ggplot(data = data_plot_jsd_rem, aes(x = Specie, y = jsd)) + geom_line(aes(group = Model, col = Model)) + theme_bw() + ylim(0,0.7) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5))+ ggtitle("Remaining Species") + ylab("Performance (JSD)") #+ xlab("Specie")
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5))+ ggtitle("Remaining Species") + ylab("Performance (JSD)") +
+  scale_color_manual(values = c("KNN" = "#1f77b4", "GP" = "#2ca02c", "SVM" = "#d62728"),labels = c("KNN" = "HD-KNN","GP"  =  "HD-GPR","SVM" = "HD-SVR"))#+ xlab("Specie")
 p_jsd = p1 + p2 + plot_layout(guides = "collect", widths = c(3.5,2)) &
   theme(legend.position = "right")
 ggsave("figures/jsd_by_species.pdf", p_jsd, width = 9.5, height = 4)
@@ -93,7 +99,7 @@ data_pc_sub$Family[data_pc_sub$Species %in% Poaceae] = "Poaceae"
 p2 = ggplot(data_pc_sub, aes(x = Axis.1, y = Axis.2)) + geom_point(aes(col = Family, shape = PredVsTrue)) +geom_line(aes(group = Species), col = "lightgrey", lty = "dotted") +
   ylab(paste("PC2:", round(pcoa_result_original$values$Rel_corr_eig[2]*100,0), "%")) +
   xlab(paste("PC1:", round(pcoa_result_original$values$Rel_corr_eig[1]*100,0), "%")) +
-  theme_bw()+ labs(shape = NULL) + ggtitle("KNN") + xlim(-0.5, 0.6) + ylim(-0.6,0.25)
+  theme_bw()+ labs(shape = NULL) + ggtitle("HD-KNN") + xlim(-0.5, 0.6) + ylim(-0.6,0.25)
 
 
 
@@ -122,7 +128,7 @@ data_pc_sub_gp$Family[data_pc_sub_gp$Species %in% Poaceae] = "Poaceae"
 p3 = ggplot(data_pc_sub_gp, aes(x = Axis.1, y = Axis.2)) + geom_point(aes(col = Family, shape = PredVsTrue)) +geom_line(aes(group = Species), col = "lightgrey", lty = "dotted") +
   ylab(paste("PC2:", round(pcoa_result_original_gp$values$Rel_corr_eig[2]*100,0), "%")) +
   xlab(paste("PC1:", round(pcoa_result_original_gp$values$Rel_corr_eig[1]*100,0), "%")) +
-  theme_bw()+ labs(shape = NULL) + ggtitle("GP") + xlim(-0.5, 0.6) + ylim(-0.6,0.25)
+  theme_bw()+ labs(shape = NULL) + ggtitle("HD-GPR") + xlim(-0.5, 0.6) + ylim(-0.6,0.25)
 
 
 # 3. PCoA plot for SVM
@@ -150,7 +156,7 @@ data_pc_sub_svm$Family[data_pc_sub_svm$Species %in% Poaceae] = "Poaceae"
 p4 = ggplot(data_pc_sub_svm, aes(x = Axis.1, y = Axis.2)) + geom_point(aes(col = Family, shape = PredVsTrue)) +geom_line(aes(group = Species), col = "lightgrey", lty = "dotted") +
   ylab(paste("PC2:", round(pcoa_result_original_svm$values$Rel_corr_eig[2]*100,0), "%")) +
   xlab(paste("PC1:", round(pcoa_result_original_svm$values$Rel_corr_eig[1]*100,0), "%")) +
-  theme_bw()+ labs(shape = NULL) + ggtitle("SVM") + xlim(-0.5, 0.6) + ylim(-0.6,0.25)
+  theme_bw()+ labs(shape = NULL) + ggtitle("HD-SVR") + xlim(-0.5, 0.6) + ylim(-0.6,0.25)
 
 
 # Create final figure 4 of manuscript

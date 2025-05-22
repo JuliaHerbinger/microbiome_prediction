@@ -362,7 +362,7 @@ compute_dist_matrix = function(bmr, type, learner_id){
     tab[,c("row_ids", type), with = FALSE]
   })
   
-  data = data %>% reduce(full_join, by='row_ids')
+  data = data %>% purrr::reduce(full_join, by='row_ids')
   data = data[order(data$row_ids),]
   
   dist = matrix(nrow = nrow(data), ncol = nrow(data) ) 

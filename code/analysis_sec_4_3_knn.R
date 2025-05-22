@@ -13,7 +13,7 @@ dist_matrix <- apply(X, 1, function(instance_1) {
 diag(dist_matrix) = 1
 
 # Create a dataframe of all possible (k, i, j) combinations
-grid <- expand.grid(k = 1:k_max, i = 1:n_y, j = 1:n_x)
+grid <- expand.grid(k = 1:60, i = 1:ncol(Y), j = 1:nrow(X))
 
 # Function to process a single (k, i, j) triplet
 process_entry <- function(row) {
@@ -54,8 +54,8 @@ df <- as.data.frame(df_new)
 
 # Aggregating over microbiomes
 grouped_data <- df %>%
-  group_by(species, k) %>%
-  summarise(
+  dplyr::group_by(species, k) %>%
+  dplyr::summarise(
     JSD = mean(JSD(rbind(unlist(prediction), unlist(y)), unit = "log", est.prob = "empirical", test.na = TRUE)),
     MAD = mean(abs(unlist(prediction) - unlist(y))),
     mean_distance = mean(unlist(distance)),
@@ -112,8 +112,8 @@ ggsave("figures/knn_k_jsd_vs_mad.pdf", p, width = 9.5, height = 13)
 
 # Aggregating on Family level
 grouped_data_fam <- grouped_data %>%
-  group_by(Family, k) %>%
-  summarise(
+  dplyr::group_by(Family, k) %>%
+  dplyr::summarise(
     mean_JSD = mean(JSD),
     min_jsd = min(JSD),
     max_jsd = max(JSD),
@@ -125,10 +125,10 @@ grouped_data_fam <- grouped_data %>%
 
 # Create plot for Figure 6
 p_fam = ggplot(grouped_data_fam, aes(x = k)) +
-  geom_line(aes(y = mean_JSD, color = "JSD"), linetype = 2) +
-  geom_ribbon(aes(ymin = min_jsd, ymax = max_jsd, fill = "JSD"), alpha = 0.3) +
-  geom_line(aes(y = mean_distance2, color = "Phyl. Distance")) +
-  geom_ribbon(aes(ymin = min_distance, ymax = max_distance, fill = "Phyl. Distance"), alpha = 0.3) +
+  geom_line(aes(y = mean_JSD, color = "Microbial"), linetype = 2) +
+  geom_ribbon(aes(ymin = min_jsd, ymax = max_jsd, fill = "Microbial"), alpha = 0.3) +
+  geom_line(aes(y = mean_distance2, color = "Phylogenetic")) +
+  geom_ribbon(aes(ymin = min_distance, ymax = max_distance, fill = "Phylogenetic"), alpha = 0.3) +
   facet_wrap(vars(Family), ncol = 5) +
   labs(x = "k", y = "Distance", color = "Mean", fill = "Range") +
   theme_minimal()
@@ -136,34 +136,34 @@ p_fam = ggplot(grouped_data_fam, aes(x = k)) +
 # Save Figure 6
 p = p_fam + plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
-ggsave("figures/knn_k_jsd_fam.pdf", p, width = 5.5, height = 3)
+ggsave("figures/knn_k_jsd_fam.pdf", p, width = 6, height = 3)
 
 
 #---------------------------------------------------------------------
-# Create Table 3: Analysis of best k value
+# Create Table 4: Analysis of best k value
 
 # table with counts of best k values
 jsd_min_df = grouped_data %>%
-  group_by(species) %>%
-  filter(JSD == min(JSD))
+  dplyr::group_by(species) %>%
+  dplyr::filter(JSD == min(JSD))
 
 jsd_min_df_k = jsd_min_df %>%
-  group_by(k)%>%
-  summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
+  dplyr::group_by(k)%>%
+  dplyr::summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
 
 
 # Create table for each family
 jsd_min_df_k_bra = jsd_min_df[jsd_min_df$Family == c("Brassica"),] %>%
-  group_by(k)%>%
-  summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
+  dplyr::group_by(k)%>%
+  dplyr::summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
 
 jsd_min_df_k_poa = jsd_min_df[jsd_min_df$Family == c("Poaceae"),] %>%
-  group_by(k)%>%
-  summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
+  dplyr::group_by(k)%>%
+  dplyr::summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
 
 jsd_min_df_k_rem = jsd_min_df[jsd_min_df$Family == c("Remaining"),] %>%
-  group_by(k)%>%
-  summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
+  dplyr::group_by(k)%>%
+  dplyr::summarise(k_count = sum(k==k), mean_jsd = mean(JSD))
 
 # merge data frames
 jsd_df = merge(jsd_min_df_k, jsd_min_df_k_bra, by = "k", all = T)
@@ -196,19 +196,19 @@ df_mae_plot$Species <- factor(df_mae_plot$Species, levels = c(Brassica, Poaceae,
 
 # 2. Row means (across microbiomes)
 row_means <- df_mae_plot %>%
-  group_by(Species) %>%
-  summarise(Value = mean(Value), .groups = "drop") %>%
-  mutate(Microbiome = "Specie Mean", Value_type = "mean")
+  dplyr::group_by(Species) %>%
+  dplyr::summarise(Value = mean(Value), .groups = "drop") %>%
+  dplyr::mutate(Microbiome = "Specie Mean", Value_type = "mean")
 
 # 3. Column means (across species)
 col_means <- df_mae_plot %>%
-  group_by(Microbiome) %>%
-  summarise(Value = mean(Value), .groups = "drop") %>%
-  mutate(Species = "Microbiome Mean", Value_type = "mean")
+  dplyr::group_by(Microbiome) %>%
+  dplyr::summarise(Value = mean(Value), .groups = "drop") %>%
+  dplyr::mutate(Species = "Microbiome Mean", Value_type = "mean")
 
 # 4. Main data
 df_main <- df_mae_plot %>%
-  mutate(Value_type = "main")
+  dplyr::mutate(Value_type = "main")
 
 # 5. Combine all
 df_combined <- bind_rows(df_main, row_means, col_means)
@@ -312,7 +312,7 @@ ggsave("figures/mae_specie_micro.pdf", p, width = 12, height = 6)
 
 
 #---------------------------------------------------------------------
-# Create Table 4: 10 Microbiomes that are hardest to predict over species
+# Create Table 5: 10 Microbiomes that are hardest to predict over species
 
 # 10 microbiomes hardest to predict over all species
 sorted_median = sort.int(apply(df_mae[,1:372], 2, quantile, probs = 0.5, na.rm = TRUE),index.return = TRUE, decreasing = TRUE)
@@ -345,7 +345,7 @@ cat(latex_table)
 
 
 #---------------------------------------------------------------------
-# Table A2: Mapping of OTU numbers to names
+# Table A1: Mapping of OTU numbers to names
 
 unique_numbers = sort(unique(c(sorted_median$ix[1:10], sorted_median_bra$ix[1:10], sorted_median_poa$ix[1:10], sorted_median_rem$ix[1:10])))
 colnames_Y = colnames(Y)[unique_numbers]

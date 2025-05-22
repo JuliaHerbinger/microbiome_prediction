@@ -9,7 +9,7 @@ cran_packages <- c(
   "ggpubr", "ggrepel", "ggthemes", "gridExtra", "kableExtra", "kernlab", "knitr", "lme4", "magrittr",
   "mlr3", "mlr3extralearners", "mlr3learners", "mlr3tuning", "openssl", "pander", "paradox", "patchwork",
   "phangorn", "philentropy", "phyloseq", "plotly", "plyr", "png", "R6", "RColorBrewer", "tidyr",
-  "tidyverse", "vegan"
+  "tidyverse", "vegan", "purrr"
 )
 
 # Bioconductor packages

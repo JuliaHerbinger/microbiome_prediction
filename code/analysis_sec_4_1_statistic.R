@@ -25,6 +25,7 @@ rownames(dist_matrix) = colnames(dist_matrix) = rownames(X)
 
 #---------------------------------------------------------------------
 # Mantel Test
+set.seed(123)
 
 # For all species
 m_pearson_all = mantel(dist_matrix, dist_jsd, method = "pearson", permutations = 1000)
@@ -60,7 +61,7 @@ df_mantel = data.frame("Method" = rep(c("Pearson", "Spearman"), 4),
 
 
 #---------------------------------------------------------------------
-# Create Table 1
+# Create Table 2
 df_mantel <- df_mantel %>%
   mutate(Result = paste0(round(Statistic, 3), " (p = ", signif(Significance, 2), ")"))
 
