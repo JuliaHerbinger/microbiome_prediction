@@ -7,9 +7,9 @@ if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
 cran_packages <- c(
   "adespatial", "ape", "betapart", "data.table", "devtools", "dplyr", "factoextra", "ggdendro", "ggplot2",
   "ggpubr", "ggrepel", "ggthemes", "gridExtra", "kableExtra", "kernlab", "knitr", "lme4", "magrittr",
-  "mlr3", "mlr3extralearners", "mlr3learners", "mlr3tuning", "openssl", "pander", "paradox", "patchwork",
+  "mlr3", "mlr3tuning", "openssl", "pander", "paradox", "patchwork",
   "phangorn", "philentropy", "phyloseq", "plotly", "plyr", "png", "R6", "RColorBrewer", "tidyr",
-  "tidyverse", "vegan", "purrr"
+  "tidyverse", "vegan", "purrr", "ggnewscale", "ggtext"
 )
 
 # Bioconductor packages
@@ -22,7 +22,7 @@ bioc_packages <- c(
 github_packages <- list(
   "ranacapa" = "gauravsk/ranacapa",
   "qiime2R" = "jbisanz/qiime2R",
-  "MicrobeR" = "jbisanz/MicrobeR",
+ # "MicrobeR" = "jbisanz/MicrobeR",
   "microbiomeutilities" = "microsud/microbiomeutilities",
   "metagMisc" = "vmikk/metagMisc",
   "pairwiseAdonis" = "pmartinezarbizu/pairwiseAdonis/pairwiseAdonis"
@@ -51,6 +51,8 @@ install_github_if_missing <- function(pkg, repo) {
   }
 }
 invisible(mapply(install_github_if_missing, names(github_packages), github_packages))
+remotes::install_github("mlr-org/mlr3extralearners@*release")
+github_packages <- c(github_packages, "mlr3extralearners")
 
 # Combine all packages to load
 all_packages <- unique(c(cran_packages, bioc_packages, names(github_packages)))
